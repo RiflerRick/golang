@@ -31,3 +31,25 @@ anytime we create an executable package, it must always have the function main i
 the import statement is used to give our package access to some code that is written inside another package. So its basically the same as having the import statement of python for instance.
 
 `fmt` is the name of the standard library package that is included by default with the go programming language.
+
+Inside of go there are essentially 2 ways of defining a list like datastructure. The first one is called a good old array which can be of a fixed length only.
+The second one is called a slice that can be of variable length and has other properties. In slices however we can only store variables of the same type.
+
+Object Oriented approach vs Go approach
+
+Go is not an object oriented programming language and so there is no idea of classes in go
+In case of the deck of cards example that we are dealing with here in this project, an object oriented approach might be the following:
+
+There would be a Deck class with the following data members:
+
+- cards: string type storing all the cards
+
+And the following methods:
+
+- print: print the deck of cards
+- shuffle: suffle the deck of cards
+- saveToFile: save the entire deck to a file
+
+However in case of Go, the approach would be a bit different:
+
+We are going to have to create custom data types(which in theory are just classes)
