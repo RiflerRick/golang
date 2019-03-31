@@ -32,7 +32,6 @@ func main() {
 
 	fmt.Printf("%+v", bob)
 
-	// structs are basically like python dictionaries
 	// embedded struct
 	jim := person{
 		firstName: "Jim",

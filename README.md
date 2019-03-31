@@ -127,9 +127,37 @@ Strings, floats, ints, structs, bools are all **passed by value**
 ## Slices
 
 When we actually instantiate and initialize a slice, go is actually creating 2 separate datastructures for us. The first one is a slice and the second one is an array.
-The slice has a pointer, a capacity number and a length. The length is how many elements are there in the slice. The capacity is how many elements the slice can hold and the ptr in the pointer to the head of the actual array
+`The slice has a pointer, a capacity number and a length`. The length is how many elements are there in the slice. The capacity is how many elements the slice can hold and the ptr in the pointer to the head of the actual array
 Whenever we create a slice, the slice and the array are existing in 2 separate locations in memory. Go is a **pass by value** language and so when we pass the slice over to the function, the slice is still copied however the new copied slice still has the pointer to the head as the pointer to the same array that was pointed to by the old slice. This makes the difference and this is why it appears that we are passing by reference.
 
 This kind of behaviour is prevalent in many other data structures as well. These `types` are called **reference types**.
 
-![value types and reference types]()
+![value types and reference types](https://raw.githubusercontent.com/RiflerRick/golang/master/static/Screenshot%20from%202019-03-31%2021-11-25.png)
+
+## Maps
+
+Maps in go are basically like python dictionaries. One important thing is that in maps, all the keys must be of the same type and all the values must be of the same type.
+They can be declared statically in the following way:
+
+```go
+static initialization of maps
+colors := map[string]string {
+    "red": "<hex code of red>",
+    "blue": "<hex code of blue>",
+}
+
+var colors map[string]string // both keys and values are of type string
+
+// another way of doing the same thing
+colors := make(map[string]string)
+
+colors["green"] = "<hex code for white>" // modifying an existing map
+
+delete(colors, "green") // delete the "green" key
+
+// iterating over maps
+for color, hex := range colors {
+    fmt.Println("Hex code for the given color", color, "is", hex)
+}
+
+```
