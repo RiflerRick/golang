@@ -13,7 +13,9 @@ func main() {
 
 	// card := newCard()
 
-	cards := []string{newCard(), newCard()} // this is a slice of type of string
+	//cards := []string{newCard(), newCard()} // this is a slice of type of string
+
+	cards := deck{newCard(), newCard()}
 	cards = append(cards, "Six of Spades") // append to cards, the append function as you can see here does not actually modify the existing slice, it returns a new slice. Wrt python this is very different because obviously python's list append actually does modify the list itself
 
 	/*iterating over a slice*/
@@ -22,10 +24,21 @@ func main() {
 		fmt.Println(i, card) // i is obviously the index
 	}
 
-	fmt.Println(card)
+	// looping through the `deck` of cards and printing them
+	cards.print()
+
+	cards = newDeck()
+
+	cards.print()
+
+	fmt.Println("printing deal")
+	hand, remainingDeck := deal(cards, 5)
+	hand.print()
+	fmt.Println("-----")
+	remainingDeck.print()
 }
 
-func newCard string() { // once again in go, it is necessary to mention what type of data is being returned
+func newCard() string { // once again in go, it is necessary to mention what type of data is being returned
 	return "Five of Diamonds"
 }
 
