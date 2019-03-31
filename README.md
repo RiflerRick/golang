@@ -161,3 +161,13 @@ for color, hex := range colors {
 }
 
 ```
+
+### We cannot have same function names but different parameters in go. In other words function overloading
+
+### is not allowed in go
+
+## Some notes on Interfaces
+
+- Interfaces are not generic types. go(famously) does not support generic types.
+- interfaces are implicit. This means that we do not have to explicitly say which variable is part of the interface
+- interfaces are a contract to help us manage types.

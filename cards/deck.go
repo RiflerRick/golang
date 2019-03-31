@@ -44,6 +44,8 @@ func (d deck) print() { // be mindful here that the following implementation is 
 		fmt.Println(i, card)
 	}
 }
+// NOTE: note that in case of receiver functions it is totally possible to have the following declaration
+// func (deck) print() {} // in case we do not want to use any variable, we can do this
 
 func deal(d deck, handSize int) (deck, deck) { // here we are using parameters
 	/*
