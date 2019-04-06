@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+type logWriter struct{}
+
 func main() {
 	resp, err := http.Get("http://google.com")
 	if err != nil {
@@ -26,5 +28,20 @@ func main() {
 		Read function will not automatically resize the byte slice btw and this is something to look out for.
 	*/
 
+	/*
+		There is another way we can do the same thing which is also a better way of doing this.
+		A process typically can be in one of 2 phases: CPU bound or IO bound.
+		IO being a major portion of any process, the Reader and Writer interfaces can help us deal with this problem better.
+		Whenever we want to pass around data from one place to another we can use these interfaces as helpers.
+	*/
+
 	fmt.Println(string(bs))
+}
+
+func (logWriter) Write(bs []byte) (int, error) {
+	// by simply calling the function as Write and using the same function signature as the original
+	// write function, we are basically implementing the Writer interface with this function
+	fmt.Println(string(bs))
+	fmt.Println("Just wrote this many bytes:", len(bs))
+	return len(bs), nil
 }
