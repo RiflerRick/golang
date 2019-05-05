@@ -15,9 +15,9 @@ type metadata struct {
 func (m metadata) read(stopSignal chan bool) {
 	for {
 		select {
-		case <-stopSignal:
-			fmt.Println("stopping routine")
-			break
+		case <- stopSignal:
+            fmt.Println("stopping routine")
+			return
 		default:
 			mutex.RLock()
 			x := m.a["helloworld"].(int)
@@ -29,11 +29,11 @@ func (m metadata) read(stopSignal chan bool) {
 }
 
 func (m metadata) write(stopSignal chan bool) {
-	for {
+	for true {
 		select {
-		case <-stopSignal:
+		case <- stopSignal:
 			fmt.Println("stopping routine")
-			break
+			return
 		default:
 			mutex.RLock()
 			x := m.a["helloworld"].(int)
@@ -52,7 +52,7 @@ func main() {
 	var m metadata
 	m.a = data
 	fmt.Println("for detecting race")
-	var stopSignal chan bool
+	stopSignal := make(chan bool)
 	fmt.Println("spawning read routine")
 	go m.read(stopSignal)
 	fmt.Println("spawning write routine")
@@ -62,12 +62,13 @@ func main() {
 	fmt.Println(startTime)
 	for true {
 		timeNow := time.Now()
-		timeElapsed := int(timeNow.Sub(startTime).Minutes())
+		timeElapsed := int(timeNow.Sub(startTime).Seconds())
 		time.Sleep(2000 * time.Millisecond)
 		fmt.Println(timeElapsed)
-		if timeElapsed > 2 {
-
+		if timeElapsed > 4 {
+            fmt.Println("stopping first routine")
 			stopSignal <- true
+            fmt.Println("stopping second routine")
 			stopSignal <- true
 			break
 		}

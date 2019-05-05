@@ -30,10 +30,19 @@ func main() {
 		*/
 	}
 
-	fmt.Println(<-c) // receive whatever is coming from the channel
+	// fmt.Println(<-c) // receive whatever is coming from the channel
 	/*
 		This is a blocking call
 	*/
+
+	for { // this is like a while True loop ;)
+		go checkLink(<-c, c)
+	}
+
+	// The above code is actually equivalent to
+	// for l := range c { // we can use range in this way to get a value out of a channel
+	// go checkLink(l, c)
+	// }
 }
 
 func checkLink(link string, c chan string) { // here in the function prototype, we not only have to define the type of c
@@ -41,9 +50,9 @@ func checkLink(link string, c chan string) { // here in the function prototype, 
 	_, err := http.Get(link)
 	if err != nil {
 		fmt.Println(link, "might be down")
-		c <- "Might be down" //basically pass that given value into the channel
+		c <- link //basically pass that given value into the channel
 		return
 	}
 	fmt.Println(link, "is up!")
-	c <- "Up"
+	c <- link
 }
