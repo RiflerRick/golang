@@ -41,7 +41,7 @@ func main() {
 	var m metadata;
 	m.a = data
 	fmt.Println("for detecting race")
-	var stopSignal chan bool
+	stopSignal := make(chan bool)
 	fmt.Println("spawning read routine")
 	go m.read(stopSignal)
 	fmt.Println("spawning write routine")
