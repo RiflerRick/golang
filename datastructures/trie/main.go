@@ -25,7 +25,7 @@ func get_controller(cb CacheBackend, key string) (string, error) {
 
 func main() {
 
-	CACHE_BACKEND := "list"
+	CACHE_BACKEND := "trie"
 
 	fmt.Printf("CACHE_BACKEND initialized as %s", CACHE_BACKEND)
 

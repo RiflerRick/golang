@@ -32,11 +32,11 @@ func (t *Trie) getKey(data string) int {
 	return int(i)
 }
 
-func (t *Trie) createNode() *Node {
+func (t *Trie) createNode(key int) *Node {
 	n := new(Node)
 	n.left = nil
 	n.right = nil
-	n.key = -1
+	n.key = key
 	n.data = new(DataBlock)
 	return n
 }
@@ -47,22 +47,31 @@ function to put data into the trie
 func (t *Trie) put(key string, data string) error {
 	tKey := t.getKey(key)
 	if t.t[tKey] == nil {
-		t.t[tKey] = t.createNode()
+		fmt.Println("root node found nil")
+		t.t[tKey] = t.createNode(tKey)
 	}
 	currentNode := t.t[tKey]
-	for c := range key {
-		if int(c) < currentNode.key {
+	for i := 0; i < len(key); i++ {
+		c := int(key[i])
+		fmt.Println(c)
+		if c < currentNode.key {
 			if currentNode.left != nil {
+				// fmt.Println("left node not nil")
 				currentNode = currentNode.left
 				continue
 			}
-			currentNode.left = t.createNode()
+			fmt.Println("creating left node")
+			currentNode.left = t.createNode(c)
+			currentNode = currentNode.left
 		} else {
 			if currentNode.right != nil {
+				// fmt.Println("right node not nil")
 				currentNode = currentNode.right
 				continue
 			}
-			currentNode.right = t.createNode()
+			fmt.Println("creating right node")
+			currentNode.right = t.createNode(c)
+			currentNode = currentNode.right
 		}
 	}
 	currentNode.data.dataPointer = &data
@@ -75,20 +84,29 @@ function to get data from the trie
 */
 func (t *Trie) get(key string) (string, error) {
 	tKey := t.getKey(key)
+
 	if t.t[tKey] == nil {
+		fmt.Println("root node found nil")
 		return "", errors.New("Record not found")
 	}
 	currentNode := t.t[tKey]
-	for c := range key {
+	for i := 0; i < len(key); i++ {
+		c := int(key[i])
+		fmt.Println(c)
 		if int(c) < currentNode.key {
+
 			if currentNode.left == nil {
+				fmt.Println("left node nil")
 				return "", errors.New("Record not found")
 			}
+			fmt.Println("left node not nil")
 			currentNode = currentNode.left
 		} else {
 			if currentNode.right == nil {
+				fmt.Println("right node nil")
 				return "", errors.New("Record not found")
 			}
+			fmt.Println("right node not nil")
 			currentNode = currentNode.right
 		}
 	}

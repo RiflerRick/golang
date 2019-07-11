@@ -22,10 +22,11 @@ func RandStringRunes(n int) string {
 	return string(b)
 }
 
-func get_hit(samples int, keySize int) {
+func get_hit(keySize int, keyList []string) {
 	var key string
-	for i := 0; i < samples; i++ {
-		key = RandStringRunes(keySize)
+	for i := 0; i < len(keyList); i++ {
+		key = keyList[i]
+		fmt.Println(key)
 		resp, _ := http.Get(fmt.Sprintf("http://127.0.0.1:1337/get/%s", key))
 		// if err != nil {
 		// 	fmt.Println(resp)
@@ -34,11 +35,13 @@ func get_hit(samples int, keySize int) {
 	}
 }
 
-func put_hit(samples int, keySize int, valueSize int) {
+func put_hit(samples int, keySize int, valueSize int) []string {
 	var key string
 	var value string
+	keyList := make([]string, samples)
 	for i := 0; i < samples; i++ {
 		key = RandStringRunes(keySize)
+		keyList = append(keyList, key)
 		value = RandStringRunes(valueSize)
 		resp, _ := http.Get(fmt.Sprintf("http://127.0.0.1:1337/put/%s/%s", key, value))
 		// if err != nil {
@@ -46,18 +49,19 @@ func put_hit(samples int, keySize int, valueSize int) {
 		// }
 		fmt.Println(resp)
 	}
+	return keyList
 }
 
 func main() {
-	samples := 10000
+	samples := 100
 	keySize := 10
 	valueSize := 20
 	// concurrency := 50
 	start := time.Now()
 	initialize_rand()
-	put_hit(samples, keySize, valueSize)
+	keyList := put_hit(samples, keySize, valueSize)
 	initialize_rand()
-	get_hit(samples, keySize)
+	get_hit(keySize, keyList)
 	t := time.Now()
 	elapsed := t.Sub(start)
 
