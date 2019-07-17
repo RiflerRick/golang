@@ -24,52 +24,68 @@ func randStringRunes(n int) string {
 	return string(b)
 }
 
-func getHit(keySize int, keyList []string, randomize bool) {
-	var key string
+func getHit(keySize int, key string, randomize bool) {
 	var resp *http.Response
-	for i := 0; i < len(keyList); i++ {
-		key = keyList[i]
-		fmt.Println(key)
-		if randomize == false {
-			resp, _ = http.Get(fmt.Sprintf("http://127.0.0.1:1337/get/?key=%s", "ilapahsi"))
-		} else {
-			resp, _ = http.Get(fmt.Sprintf("http://127.0.0.1:1337/get/?key=%s", key))
-		}
-		// if err != nil {
-		// 	fmt.Println(resp)
-		// }
-		fmt.Println(resp)
-		// if resp.StatusCode == http.StatusOK {
-		// 	bodyBytes, err := ioutil.ReadAll(resp.Body)
-		// 	if err != nil {
-		// 		log.Fatal(err)
-		// 	}
-		// 	bodyString := string(bodyBytes)
-		// 	fmt.Println(bodyString)
-		// }
+	fmt.Println(key)
+	if randomize == false {
+		resp, _ = http.Get(fmt.Sprintf("http://127.0.0.1:1337/get/?key=%s", "ilapahsi"))
+	} else {
+		resp, _ = http.Get(fmt.Sprintf("http://127.0.0.1:1337/get/?key=%s", key))
 	}
+	// if err != nil {
+	// 	fmt.Println(resp)
+	// }
+	// if resp.StatusCode != http.StatusOK {
+	// 	f, err := os.Create("error.log")
+	// 	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	bodyString := string(bodyBytes)
+	// 	f.WriteString(bodyString)
+	// } else {
+	// 	fmt.Println(resp)
+	// }
+
+	fmt.Println(resp)
+
+	// if resp.StatusCode == http.StatusOK {
+	// 	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	bodyString := string(bodyBytes)
+	// 	fmt.Println(bodyString)
+	// }
 }
 
-func putHit(samples int, keySize int, valueSize int, randomize bool) []string {
+func putHit(samples int, keySize int, valueSize int, randomize bool, keys chan interface{}) {
 	var key string
 	var value string
-	var resp *http.Response
-	keyList := make([]string, samples)
+	// var resp *http.Response
 	for i := 0; i < samples; i++ {
-		key = randStringRunes(keySize)
-		keyList = append(keyList, key)
-		value = randStringRunes(valueSize)
 		if randomize == false {
-			resp, _ = http.Get(fmt.Sprintf("http://127.0.0.1:1337/put/?key=%s&value=%s", "ilapahsi", "alice"))
+			_, _ = http.Get(fmt.Sprintf("http://127.0.0.1:1337/put/?key=%s&value=%s", "ilapahsi", "alice"))
 		} else {
-			resp, _ = http.Get(fmt.Sprintf("http://127.0.0.1:1337/put/?key=%s&value=%s", key, value))
+			key = randStringRunes(keySize)
+			value = randStringRunes(valueSize)
+			_, _ = http.Get(fmt.Sprintf("http://127.0.0.1:1337/put/?key=%s&value=%s", key, value))
 		}
-		// if err != nil {
-		// 	fmt.Println(resp)
+
+		// fmt.Println(resp)
+		// if resp.StatusCode != http.StatusOK {
+		// 	f, err := os.Create("error.log")
+		// 	bodyBytes, err := ioutil.ReadAll(resp.Body)
+		// 	if err != nil {
+		// 		log.Fatal(err)
+		// 	}
+		// 	bodyString := string(bodyBytes)
+		// 	f.WriteString(bodyString)
+		// } else {
+		// 	keys <- key
 		// }
 
-		fmt.Println(resp)
-
+		keys <- key
 		// if resp.StatusCode == http.StatusOK {
 		// 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 		// 	if err != nil {
@@ -79,20 +95,31 @@ func putHit(samples int, keySize int, valueSize int, randomize bool) []string {
 		// 	fmt.Println(bodyString)
 		// }
 	}
-	return keyList
 }
 
 func main() {
 	randomize := flag.Bool("randomize", false, "randomize put and get")
+	// fmt.Println(*randomize)
 	samples := 1000
 	keySize := 10
 	valueSize := 20
 	// concurrency := 50
 	start := time.Now()
 	initializeRand()
-	keyList := putHit(samples, keySize, valueSize, *randomize)
-	initializeRand()
-	getHit(keySize, keyList, *randomize)
+	keys := make(chan interface{}, samples)
+	for i := 0; i < samples; i++ {
+		go putHit(samples, keySize, valueSize, *randomize, keys)
+	}
+	fmt.Println("put done")
+	var keyList []string
+	for i := 0; i < samples; i++ {
+		key := <-keys
+		keyList = append(keyList, key.(string))
+	}
+	for i := 0; i < samples; i++ {
+		go getHit(keySize, keyList[i], *randomize)
+	}
+	fmt.Println("get done")
 	t := time.Now()
 	elapsed := t.Sub(start)
 
