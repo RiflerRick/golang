@@ -66,9 +66,13 @@ func acquireReadLock(l *sync.RWMutex) {
 /*
 function to put data into the trie
 */
+
+// TODO: pass channels as pointers and test properly
 func (t *Trie) put(key string, data string, resp chan interface{}) {
 	tKey := t.getKey(key)
 	if t.tLock[tKey] == nil {
+		// TODO: this entire operation must be atomic. Have a look and make sure, its atomic
+		// sync atomic is one way to handle this. swap and compare is the way to go
 		fmt.Println("root node found nil")
 		t.tLock[tKey] = new(sync.RWMutex)
 		acquireLock(t.tLock[tKey])

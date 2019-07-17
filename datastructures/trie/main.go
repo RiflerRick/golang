@@ -51,6 +51,9 @@ func main() {
 		// value := r.URL.Query().Get("value")
 		getController(cache.(CacheBackend), key, getResponse)
 		fmt.Println("responding now")
+
+		// TODO: figure out a way to make this truly concurrent.
+
 		fmt.Fprintf(w, fmt.Sprintf("%s", <-getResponse))
 		fmt.Println("responded")
 	})
