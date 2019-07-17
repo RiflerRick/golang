@@ -1,8 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"sync"
 )
 
 /*
@@ -24,7 +24,8 @@ type Node struct {
 Trie implementation as a map
 */
 type Trie struct {
-	t map[int]*Node
+	t     map[int]*Node
+	tLock map[int]*sync.RWMutex // trie level lock
 }
 
 func (t *Trie) getKey(data string) int {
@@ -42,14 +43,38 @@ func (t *Trie) createNode(key int) *Node {
 	return n
 }
 
+func releaseLock(l *sync.RWMutex) {
+	fmt.Println("releasing lock")
+	l.Unlock()
+}
+
+func releaseReadLock(l *sync.RWMutex) {
+	fmt.Println("releasing read lock")
+	l.RUnlock()
+}
+
+func acquireLock(l *sync.RWMutex) {
+	fmt.Println("acquiring lock")
+	l.Lock()
+}
+
+func acquireReadLock(l *sync.RWMutex) {
+	fmt.Println("acquiring read lock")
+	l.RLock()
+}
+
 /*
 function to put data into the trie
 */
-func (t *Trie) put(key string, data string) error {
+func (t *Trie) put(key string, data string, resp chan interface{}) {
 	tKey := t.getKey(key)
-	if t.t[tKey] == nil {
+	if t.tLock[tKey] == nil {
 		fmt.Println("root node found nil")
+		t.tLock[tKey] = new(sync.RWMutex)
+		acquireLock(t.tLock[tKey])
 		t.t[tKey] = t.createNode(tKey)
+	} else {
+		acquireLock(t.tLock[tKey])
 	}
 	currentNode := t.t[tKey]
 	for i := 0; i < len(key); i++ {
@@ -76,20 +101,22 @@ func (t *Trie) put(key string, data string) error {
 		}
 	}
 	currentNode.data.dataPointer = &data
+	releaseLock(t.tLock[tKey])
 	fmt.Printf("Record %s written\n", data)
-	return nil
+	resp <- nil
 }
 
 /*
 function to get data from the trie
 */
-func (t *Trie) get(key string) (string, error) {
+func (t *Trie) get(key string, resp chan interface{}) {
 	tKey := t.getKey(key)
 
-	if t.t[tKey] == nil {
+	if t.tLock[tKey] == nil {
 		fmt.Println("root node found nil")
-		return "", errors.New("Record not found")
+		resp <- nil
 	}
+	acquireReadLock(t.tLock[tKey])
 	currentNode := t.t[tKey]
 	for i := 0; i < len(key); i++ {
 		c := int(key[i])
@@ -98,21 +125,27 @@ func (t *Trie) get(key string) (string, error) {
 
 			if currentNode.left == nil {
 				fmt.Println("left node nil")
-				return "", errors.New("Record not found")
+				releaseReadLock(t.tLock[tKey])
+				resp <- nil
 			}
 			fmt.Println("left node not nil")
 			currentNode = currentNode.left
 		} else {
 			if currentNode.right == nil {
 				fmt.Println("right node nil")
-				return "", errors.New("Record not found")
+				releaseReadLock(t.tLock[tKey])
+				resp <- nil
 			}
 			fmt.Println("right node not nil")
 			currentNode = currentNode.right
 		}
 	}
 	if currentNode.data.dataPointer != nil {
-		return *currentNode.data.dataPointer, nil
+		d := *currentNode.data.dataPointer
+		releaseReadLock(t.tLock[tKey])
+		resp <- d
+	} else {
+		releaseReadLock(t.tLock[tKey])
 	}
-	return "", errors.New("Record not found")
+	resp <- nil
 }

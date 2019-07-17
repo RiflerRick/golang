@@ -5,20 +5,20 @@ import (
 	"net/http"
 )
 
-func getValue(c CacheBackend, key string) (string, error) {
-	return c.getValue(key)
+func getValue(c CacheBackend, key string, resp chan interface{}) {
+	c.getValue(key, resp)
 }
 
-func putValue(c CacheBackend, key string, data string) error {
-	return c.putValue(key, data)
+func putValue(c CacheBackend, key string, data string, resp chan interface{}) {
+	c.putValue(key, data, resp)
 }
 
-func putController(cb CacheBackend, key string, value string) error {
-	return putValue(cb, key, value)
+func putController(cb CacheBackend, key string, value string, resp chan interface{}) {
+	putValue(cb, key, value, resp)
 }
 
-func getController(cb CacheBackend, key string) (string, error) {
-	return getValue(cb, key)
+func getController(cb CacheBackend, key string, resp chan interface{}) {
+	getValue(cb, key, resp)
 }
 
 func main() {
@@ -43,12 +43,16 @@ func main() {
 
 	// http.HandleFunc("/", handler)
 	// log.Fatal(http.ListenAndServe(":8080", nil))
+	putResponse := make(chan interface{}, 1)
+	getResponse := make(chan interface{}, 1)
 
 	http.HandleFunc("/get/", func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
 		// value := r.URL.Query().Get("value")
-		data, _ := getController(cache.(CacheBackend), key)
-		fmt.Fprintf(w, fmt.Sprintf("%s", data))
+		getController(cache.(CacheBackend), key, getResponse)
+		fmt.Println("responding now")
+		fmt.Fprintf(w, fmt.Sprintf("%s", <-getResponse))
+		fmt.Println("responded")
 	})
 	http.HandleFunc("/put/", func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
@@ -57,7 +61,10 @@ func main() {
 		fmt.Println(r.URL.Query())
 		fmt.Printf("key: %s\n", key)
 		fmt.Printf("value: %s\n", value)
-		putController(cache.(CacheBackend), key, value)
+		putController(cache.(CacheBackend), key, value, putResponse)
+		fmt.Println("responding now")
+		fmt.Fprintf(w, fmt.Sprintf("%s", <-putResponse))
+		fmt.Println("responded")
 	})
 
 	// r.HandleFunc("/put/{key}/{value}", func(w http.ResponseWriter, r *http.Request) {

@@ -1,8 +1,10 @@
 package main
 
+import "sync"
+
 type CacheBackend interface {
-	getValue(key string) (string, error)
-	putValue(key string, data string) error
+	getValue(key string, resp chan interface{})
+	putValue(key string, data string, resp chan interface{})
 	init()
 }
 
@@ -17,14 +19,15 @@ type ListBackend struct {
 func (t *TrieBackend) init() {
 	t.trie = new(Trie)
 	t.trie.t = make(map[int]*Node)
+	t.trie.tLock = make(map[int]*sync.RWMutex)
 }
 
-func (t *TrieBackend) getValue(key string) (string, error) {
-	return t.trie.get(key)
+func (t *TrieBackend) getValue(key string, resp chan interface{}) {
+	go t.trie.get(key, resp)
 }
 
-func (t *TrieBackend) putValue(key string, data string) error {
-	return t.trie.put(key, data)
+func (t *TrieBackend) putValue(key string, data string, resp chan interface{}) {
+	go t.trie.put(key, data, resp)
 }
 
 func (l *ListBackend) init() {
