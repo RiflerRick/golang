@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: go-cache
+  name: go-cache
+  namespace: test-mazerunners
+spec:
+  selector:
+    matchLabels:
+      app: go-cache
+      name: go-cache
+      env: dev
+  strategy:
+    rollingUpdate:
+      maxSurge: "20%"
+      maxUnavailable: "10%"
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: go-cache
+        env: dev
+        name: go-cache
+        version: v1
+    spec:
+      containers:
+        - name: go-cache
+          image: go-cache-riflerrick:v0.1.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: "200m"
+              memory: 150Mi
+            requests:
+              cpu: "100m"
+              memory: 100Mi
+      nodeSelector:
+        environment: dev-qa
+      terminationGracePeriodSeconds: 10
