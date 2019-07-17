@@ -28,6 +28,7 @@ type Trie struct {
 }
 
 func (t *Trie) getKey(data string) int {
+	print(data)
 	i := data[0]
 	return int(i)
 }
